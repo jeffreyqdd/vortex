@@ -146,18 +146,9 @@ std::size_t ArenaAllocator<KeyType>::acquire_segment(std::size_t min_capacity) {
   if (!_segments.empty()) {
     const std::size_t latest_id = _segments.size() - 1;
     Segment &latest = _segments[latest_id];
-    if (latest.capacity - latest.used >= min_capacity) {
+    if (latest.live_allocations > 0 && latest.capacity - latest.used >= min_capacity) {
       return latest_id;
     }
-  }
-
-  Segment segment;
-  segment.capacity = std::max(_segment_capacity, min_capacity);
-  segment.bytes = new (std::nothrow) std::byte[segment.capacity];
-
-  if (segment.bytes != nullptr) {
-    _segments.push_back(segment);
-    return _segments.size() - 1;
   }
 
   for (auto it = _recycled_segments.begin(); it != _recycled_segments.end();
@@ -170,7 +161,16 @@ std::size_t ArenaAllocator<KeyType>::acquire_segment(std::size_t min_capacity) {
     }
   }
 
-  throw std::bad_alloc();
+  Segment segment;
+  segment.capacity = std::max(_segment_capacity, min_capacity);
+  segment.bytes = new (std::nothrow) std::byte[segment.capacity];
+
+  if (segment.bytes == nullptr) {
+    throw std::bad_alloc();
+  }
+
+  _segments.push_back(segment);
+  return _segments.size() - 1;
 }
 
 template <typename KeyType>

@@ -41,11 +41,11 @@ add_custom_command(TARGET setup_audioQuery_pipeline POST_BUILD
         ${CMAKE_BINARY_DIR}/audioQuery_pipeline/cfg/clear_log.sh.tmp
 
     # 4. Symlink python_udls
-    COMMAND ln -sfnT ${CMAKE_CURRENT_SOURCE_DIR}/python_udls
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_SOURCE_DIR}/python_udls
         ${CMAKE_BINARY_DIR}/audioQuery_pipeline/python_udls
 
     # 5. Symlink client directory
-    COMMAND ln -sfnT ${CMAKE_CURRENT_SOURCE_DIR}/client
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_SOURCE_DIR}/client
         ${CMAKE_BINARY_DIR}/audioQuery_pipeline/client
 
     # 6. Symlink requirements.txt
@@ -149,4 +149,3 @@ add_custom_command(TARGET setup_audioQuery_pipeline POST_BUILD
     VERBATIM
     COMMENT "Creating node-specific configuration symlinks"
 )
-

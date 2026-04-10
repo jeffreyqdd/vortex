@@ -14,7 +14,7 @@ std::optional<TaskBinding> JoinTable::add_input(const TaskRef& task,
     throw std::out_of_range("dependency_slot is out of range for expected_inputs");
   }
 
-  const TaskKey key{task.job_id, task.task_id};
+  const TaskKey key{task.graph_id, task.job_id, task.task_id};
   auto [it, inserted] = states_.emplace(key, State{});
   State& state = it->second;
 
@@ -52,7 +52,7 @@ std::optional<TaskBinding> JoinTable::add_input(const TaskRef& task,
 }
 
 void JoinTable::clear_task(const TaskRef& task) {
-  states_.erase(TaskKey{task.job_id, task.task_id});
+  states_.erase(TaskKey{task.graph_id, task.job_id, task.task_id});
 }
 
 std::size_t JoinTable::pending_tasks() const {

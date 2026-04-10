@@ -44,7 +44,7 @@ add_custom_command(TARGET example_udl POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/cfg
         ${CMAKE_CURRENT_BINARY_DIR}/cfg
 
-    COMMAND ln -sfnT ${CMAKE_CURRENT_SOURCE_DIR}/python_udls
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_SOURCE_DIR}/python_udls
         ${CMAKE_BINARY_DIR}/example_pipeline/python_udls
 
     COMMAND ln -sfn ${CMAKE_CURRENT_BINARY_DIR}/cfg/layout.json.tmp
@@ -74,11 +74,11 @@ add_custom_command(TARGET example_udl POST_BUILD
 
     COMMAND chmod 755 ${CMAKE_CURRENT_SOURCE_DIR}/cfg/clear_log.sh.tmp
 
-    COMMAND ln -sfn ${CMAKE_CURRENT_SOURCE_DIR}/python_udls
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_SOURCE_DIR}/python_udls
         ${CMAKE_CURRENT_BINARY_DIR}/cfg/n0/python_udls
-    COMMAND ln -sfn ${CMAKE_CURRENT_SOURCE_DIR}/python_udls
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_SOURCE_DIR}/python_udls
         ${CMAKE_CURRENT_BINARY_DIR}/cfg/n1/python_udls
-    COMMAND ln -sfn ${CMAKE_CURRENT_SOURCE_DIR}/python_udls
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_SOURCE_DIR}/python_udls
         ${CMAKE_CURRENT_BINARY_DIR}/cfg/n2/python_udls
 
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/cfg/run.sh.tmp

@@ -509,7 +509,7 @@ public:
 		} else {
 			auto data_timer = make_perf_timer("observer.data_message");
 			spdlog::info("[Worker:{}] ingest key={}", _name, key_string);
-			if(_join_service->try_ingest(key_string, payload_slice)) {
+			if(_join_service->try_ingest(payload_slice)) {
 				log_perf_counter("observer.ingest.accepted", 1u);
 				std::lock_guard<std::mutex> lock(_exec_mu);
 				_last_ctxt = typed_ctxt;

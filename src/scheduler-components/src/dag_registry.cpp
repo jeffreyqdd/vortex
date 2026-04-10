@@ -367,7 +367,7 @@ void DagRegistry::print_registry_debug(std::ostream& out) const {
     }
   }
 
-  out << "[EXAMPLE ocdpo]: DAG registry dump end" << std::endl;
+  out << "[DagRegistry]: DAG registry dump end" << std::endl;
 }
 
 nlohmann::json DagRegistry::load_json_file(const std::string& path) {

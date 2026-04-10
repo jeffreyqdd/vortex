@@ -29,17 +29,19 @@ public:
 
 private:
 	struct TaskKey {
+		uint16_t graph_id;
 		uint16_t job_id;
 		uint16_t task_id;
 
 		bool operator==(const TaskKey& other) const {
-			return job_id == other.job_id && task_id == other.task_id;
+			return graph_id == other.graph_id && job_id == other.job_id && task_id == other.task_id;
 		}
 	};
 
 	struct TaskKeyHash {
 		std::size_t operator()(const TaskKey& key) const {
-			return (static_cast<std::size_t>(key.job_id) << 16) ^
+			return (static_cast<std::size_t>(key.graph_id) << 32) ^
+				   (static_cast<std::size_t>(key.job_id) << 16) ^
 				   static_cast<std::size_t>(key.task_id);
 		}
 	};

@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <functional>
 #include <memory>
 #include <thread>
 
@@ -32,20 +31,15 @@ std::size_t TaskJoinService::next_pow2(std::size_t value) {
 }
 
 bool TaskJoinService::claim_owner_thread() {
-	const std::size_t token = std::hash<std::thread::id>{}(std::this_thread::get_id());
-	if(token == 0) {
-		return false;
-	}
-
-	std::size_t expected = 0;
-	if(_owner_thread_token.compare_exchange_strong(expected,
-													   token,
-													   std::memory_order_acq_rel,
-													   std::memory_order_acquire)) {
+	const std::thread::id this_thread_id = std::this_thread::get_id();
+	std::lock_guard<std::mutex> lock(_owner_thread_mutex);
+	if(!_owner_thread_claimed) {
+		_owner_thread_id = this_thread_id;
+		_owner_thread_claimed = true;
 		return true;
 	}
 
-	return _owner_thread_token.load(std::memory_order_acquire) == token;
+	return _owner_thread_id == this_thread_id;
 }
 
 bool TaskJoinService::try_enqueue_ingress(IngressPacket&& packet) {
@@ -103,14 +97,12 @@ bool TaskJoinService::try_dequeue_ingress(IngressPacket& packet) {
 	}
 }
 
-bool TaskJoinService::try_ingest(const std::string_view& string_key,
-								 const std::span<const std::byte>& bytes) {
+bool TaskJoinService::try_ingest(const std::span<const std::byte>& bytes) {
 	if(bytes.empty()) {
 		return false;
 	}
 
 	IngressPacket packet;
-	packet.key.assign(string_key.begin(), string_key.end());
 	packet.bytes.assign(bytes.begin(), bytes.end());
 	return try_enqueue_ingress(std::move(packet));
 }
@@ -128,7 +120,6 @@ std::size_t TaskJoinService::drain_ingress(std::size_t max_messages) {
 		if(binding) {
 			_ready_bindings.emplace_back(std::move(*binding));
 		}
-		packet.key.clear();
 		packet.bytes.clear();
 		++drained;
 	}
@@ -150,9 +141,8 @@ std::optional<TaskBinding> TaskJoinService::poll_ready() {
 	return binding;
 }
 
-std::optional<TaskBinding> TaskJoinService::recv(const std::string_view& string_key,
-												 const std::span<const std::byte>& bytes) {
-	if(!try_ingest(string_key, bytes)) {
+std::optional<TaskBinding> TaskJoinService::recv(const std::span<const std::byte>& bytes) {
+	if(!try_ingest(bytes)) {
 		return std::nullopt;
 	}
 	(void)drain_ingress(1);
@@ -161,14 +151,18 @@ std::optional<TaskBinding> TaskJoinService::recv(const std::string_view& string_
 
 
 std::optional<TaskBinding> TaskJoinService::process_packet(const std::span<const std::byte>& bytes) {
+	const auto header_size = TaskOutput{}.size_estimate();
+	if(bytes.size() < header_size) {
+		return std::nullopt;
+	}
+
 	const auto* buf = reinterpret_cast<const uint8_t*>(bytes.data());
 	auto header = TaskOutput::from_bytes_noalloc_const(nullptr, buf);
 	if(!header) {
 		return std::nullopt;
 	}
 
-	const auto header_size = header->size_estimate();
-	if(bytes.size() < header_size || bytes.size() < header_size + header->payload_size) {
+	if(bytes.size() < header_size + header->payload_size) {
 		return std::nullopt;
 	}
 
@@ -204,7 +198,7 @@ std::optional<TaskBinding> TaskJoinService::process_packet(const std::span<const
 
 	BlobHandle bh;
 	bh.pool_class = 0;
-	bh.segment_id = static_cast<uint32_t>(payload_id);
+	bh.segment_id = payload_id;
 	bh.offset = static_cast<uint32_t>(arena_handle.offset);
 	bh.size = static_cast<uint32_t>(arena_handle.len);
 

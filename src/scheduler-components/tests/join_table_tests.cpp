@@ -8,7 +8,7 @@ VORTEX_SCHEDULER_IMPORT
 
 namespace {
 
-BlobHandle make_handle(uint32_t seg, uint32_t off, uint32_t size) {
+BlobHandle make_handle(uint64_t seg, uint32_t off, uint32_t size) {
   BlobHandle h;
   h.pool_class = 1;
   h.segment_id = seg;
@@ -108,5 +108,27 @@ TEST_CASE("JoinTable clear_task drops partial state", "[join_table]") {
   CHECK(table.pending_tasks() == 1);
 
   table.clear_task(task);
+  CHECK(table.pending_tasks() == 0);
+}
+
+TEST_CASE("JoinTable keys partial state by graph_id", "[join_table]") {
+  JoinTable table;
+  TaskRef task_graph0{0, 11, 7};
+  TaskRef task_graph1{1, 11, 7};
+
+  auto first = table.add_input(task_graph0, 2, 2, 0, make_handle(21, 0, 8));
+  CHECK_FALSE(first.has_value());
+  auto second = table.add_input(task_graph1, 2, 2, 0, make_handle(22, 8, 8));
+  CHECK_FALSE(second.has_value());
+  CHECK(table.pending_tasks() == 2);
+
+  auto done_graph0 = table.add_input(task_graph0, 2, 2, 1, make_handle(23, 16, 8));
+  REQUIRE(done_graph0.has_value());
+  CHECK(done_graph0->task.graph_id == 0);
+  CHECK(table.pending_tasks() == 1);
+
+  auto done_graph1 = table.add_input(task_graph1, 2, 2, 1, make_handle(24, 24, 8));
+  REQUIRE(done_graph1.has_value());
+  CHECK(done_graph1->task.graph_id == 1);
   CHECK(table.pending_tasks() == 0);
 }

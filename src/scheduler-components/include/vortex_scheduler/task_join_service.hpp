@@ -1,10 +1,10 @@
-/** The responsibility of the TaskJoinService is to act as a temporary holding arena which emits computable
- * tasks (tasks that have all dependencies present). It contains 4 internal pieces
+/** The responsibility of the TaskJoinService is to act as a temporary holding arena that emits computable
+ * tasks (tasks that have all dependencies present). It contains 4 internal pieces:
  *  1. Input Arena      - size-segmented arena allocator. see arena.hpp
- *  2. Ingress Queue    - TODO: jq54: writeme.
- *  3. Dag Registry     - parses `dfgs.json` into a deteterministic execution graph
+ *  2. Ingress Queue    - lock-free producer queue consumed by one owner thread
+ *  3. Dag Registry     - parses `dfgs.json` into a deterministic execution graph
  *  4. Join Table       - tracks which dependency slots have been satisfied and emits as `TaskBinding` when all
- *                        all uptream components are present
+ *                        upstream components are present
  */
 #pragma once
 #include <vortex_scheduler/core.hpp>
@@ -14,14 +14,16 @@
 #include <atomic>
 #include <deque>
 #include <memory>
+#include <mutex>
 #include <span>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
 VORTEX_SCHEDULER_NAMESPACE_BEGIN
 
-/// @brief A temporary holding arena which emits computatble tasks once all dependencies are present
+/// @brief A temporary holding arena which emits computable tasks once all dependencies are present
 class TaskJoinService {
   public:
     
@@ -32,11 +34,11 @@ class TaskJoinService {
     ~TaskJoinService() = default;
 
   public:
-    /// @brief receive a message from path `string key` and an encoded `TaskOutput`
-    std::optional<TaskBinding> recv(const std::string_view& string_key, const std::span<const std::byte> &bytes);
+    /// @brief receive an encoded `TaskOutput`
+    std::optional<TaskBinding> recv(const std::span<const std::byte>& bytes);
 
     /// @brief non-blocking ingress enqueue used by producer threads
-    bool try_ingest(const std::string_view& string_key, const std::span<const std::byte>& bytes);
+    bool try_ingest(const std::span<const std::byte>& bytes);
 
     /// @brief owner-thread method that processes enqueued ingress packets
     std::size_t drain_ingress(std::size_t max_messages = 64);
@@ -54,7 +56,6 @@ class TaskJoinService {
 
   private:
     struct IngressPacket {
-      std::string key;
       std::vector<std::byte> bytes;
     };
 
@@ -82,7 +83,9 @@ class TaskJoinService {
     std::atomic<std::size_t> _ingress_head{0};
     std::atomic<std::size_t> _ingress_tail{0};
 
-    std::atomic<std::size_t> _owner_thread_token{0};
+    mutable std::mutex _owner_thread_mutex;
+    std::thread::id _owner_thread_id;
+    bool _owner_thread_claimed = false;
     uint64_t _next_payload_id = 1;
 };
 

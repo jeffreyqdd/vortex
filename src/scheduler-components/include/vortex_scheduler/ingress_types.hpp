@@ -11,7 +11,7 @@ VORTEX_SCHEDULER_NAMESPACE_BEGIN
 // Internal runtime handle for arena-owned payload bytes.
 struct BlobHandle {
   uint8_t pool_class = 0;
-  uint32_t segment_id = 0;
+  uint64_t segment_id = 0;
   uint32_t offset = 0;
   uint32_t size = 0;
 };

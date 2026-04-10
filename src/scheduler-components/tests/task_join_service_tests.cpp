@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 
 #include <filesystem>
+#include <chrono>
 #include <cstring>
 #include <fstream>
 #include <string>
@@ -14,7 +15,9 @@ VORTEX_SCHEDULER_IMPORT
 
 namespace {
 
-std::string write_temp_dfg() {
+class TempDfgFile {
+ public:
+  TempDfgFile() {
   const std::string json = R"({
     "tasks": [
       {"task_id":0, "pathname":"/A", "udl_uuid":"u"},
@@ -33,11 +36,24 @@ std::string write_temp_dfg() {
     ]
   })";
 
-  auto path = std::filesystem::temp_directory_path() / "dfg_test.json";
-  std::ofstream out(path);
+  path_ = std::filesystem::temp_directory_path() /
+          ("dfg_test_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + ".json");
+  std::ofstream out(path_);
   out << json;
-  return path.string();
-}
+  }
+
+  ~TempDfgFile() {
+    std::error_code ec;
+    std::filesystem::remove(path_, ec);
+  }
+
+  std::string string() const {
+    return path_.string();
+  }
+
+ private:
+  std::filesystem::path path_;
+};
 
 std::vector<std::byte> make_packet(const scheduler::TaskOutput& header,
                                    const std::vector<std::byte>& payload) {
@@ -51,8 +67,8 @@ std::vector<std::byte> make_packet(const scheduler::TaskOutput& header,
 }  // namespace
 
 TEST_CASE("TaskJoinService emits binding when all deps present", "[task_join_service]") {
-  const auto dfg_path = write_temp_dfg();
-  auto dag = scheduler::DagRegistry::from_dfg_file(dfg_path, "u");
+  TempDfgFile dfg_file;
+  auto dag = scheduler::DagRegistry::from_dfg_file(dfg_file.string(), "u");
   scheduler::TaskJoinService service(dag);
 
   // input from B (task 1)
@@ -63,7 +79,7 @@ TEST_CASE("TaskJoinService emits binding when all deps present", "[task_join_ser
   scheduler::TaskOutput hB{7, 42, 3, 1, 0, static_cast<uint32_t>(pB.size())};
   auto pktB = make_packet(hB, pB);
 
-  auto first = service.recv("/D", std::span<const std::byte>(pktB.data(), pktB.size()));
+  auto first = service.recv(std::span<const std::byte>(pktB.data(), pktB.size()));
   CHECK_FALSE(first.has_value());
 
   // input from C (task 2)
@@ -74,7 +90,7 @@ TEST_CASE("TaskJoinService emits binding when all deps present", "[task_join_ser
   scheduler::TaskOutput hC{8, 42, 3, 2, 0, static_cast<uint32_t>(pC.size())};
   auto pktC = make_packet(hC, pC);
 
-  auto second = service.recv("/D", std::span<const std::byte>(pktC.data(), pktC.size()));
+  auto second = service.recv(std::span<const std::byte>(pktC.data(), pktC.size()));
   REQUIRE(second.has_value());
 
   const auto& binding = *second;
@@ -95,8 +111,8 @@ TEST_CASE("TaskJoinService emits binding when all deps present", "[task_join_ser
 }
 
 TEST_CASE("TaskJoinService emits binding for root task ingress", "[task_join_service]") {
-  const auto dfg_path = write_temp_dfg();
-  auto dag = scheduler::DagRegistry::from_dfg_file(dfg_path, "u");
+  TempDfgFile dfg_file;
+  auto dag = scheduler::DagRegistry::from_dfg_file(dfg_file.string(), "u");
   scheduler::TaskJoinService service(dag);
 
   StepAMessage msgA{"seedA"};
@@ -107,7 +123,7 @@ TEST_CASE("TaskJoinService emits binding for root task ingress", "[task_join_ser
   scheduler::TaskOutput hA{1, 500, 0, 0, 0, static_cast<uint32_t>(pA.size())};
   auto pktA = make_packet(hA, pA);
 
-  auto binding = service.recv("/A/500", std::span<const std::byte>(pktA.data(), pktA.size()));
+  auto binding = service.recv(std::span<const std::byte>(pktA.data(), pktA.size()));
   REQUIRE(binding.has_value());
   CHECK(binding->task.graph_id == 0);
   CHECK(binding->task.job_id == 500);
