@@ -9,10 +9,10 @@ requests
 networkx==3.2.1
 
 # preFLMR specific dependencies
-ujson==5.10.0
+ujson==5.12.0
 gitpython==3.1.44
 easydict==1.13
 ninja==1.11.1
 datasets==3.2.0
-transformers==4.35.2
+transformers==4.48.0
 easydict==1.13
