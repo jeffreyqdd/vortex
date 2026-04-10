@@ -113,35 +113,35 @@ add_custom_command(TARGET a_udl POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_SOURCE_DIR}/python_udls
         ${CMAKE_BINARY_DIR}/example_scheduler/python_udls
 
-    COMMAND ln -sfn ${CMAKE_CURRENT_BINARY_DIR}/cfg/layout.json.tmp
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/cfg/layout.json.tmp
         ${CMAKE_CURRENT_BINARY_DIR}/cfg/n0/layout.json
-    COMMAND ln -sfn ${CMAKE_CURRENT_BINARY_DIR}/cfg/layout.json.tmp
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/cfg/layout.json.tmp
         ${CMAKE_CURRENT_BINARY_DIR}/cfg/n1/layout.json
-    COMMAND ln -sfn ${CMAKE_CURRENT_BINARY_DIR}/cfg/layout.json.tmp
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/cfg/layout.json.tmp
         ${CMAKE_CURRENT_BINARY_DIR}/cfg/n2/layout.json
-    COMMAND ln -sfn ${CMAKE_CURRENT_BINARY_DIR}/cfg/dfgs.json.tmp
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/cfg/dfgs.json.tmp
         ${CMAKE_CURRENT_BINARY_DIR}/cfg/n0/dfgs.json
-    COMMAND ln -sfn ${CMAKE_CURRENT_BINARY_DIR}/cfg/dfgs.json.tmp
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/cfg/dfgs.json.tmp
         ${CMAKE_CURRENT_BINARY_DIR}/cfg/n1/dfgs.json
-    COMMAND ln -sfn ${CMAKE_CURRENT_BINARY_DIR}/cfg/dfgs.json.tmp
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/cfg/dfgs.json.tmp
         ${CMAKE_CURRENT_BINARY_DIR}/cfg/n2/dfgs.json
-    COMMAND ln -sfn ${CMAKE_CURRENT_BINARY_DIR}/cfg/jobs.json.tmp
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/cfg/jobs.json.tmp
         ${CMAKE_CURRENT_BINARY_DIR}/cfg/n0/jobs.json
-    COMMAND ln -sfn ${CMAKE_CURRENT_BINARY_DIR}/cfg/jobs.json.tmp
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/cfg/jobs.json.tmp
         ${CMAKE_CURRENT_BINARY_DIR}/cfg/n1/jobs.json
-    COMMAND ln -sfn ${CMAKE_CURRENT_BINARY_DIR}/cfg/jobs.json.tmp
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/cfg/jobs.json.tmp
         ${CMAKE_CURRENT_BINARY_DIR}/cfg/n2/jobs.json
-    COMMAND ln -sfn ${CMAKE_CURRENT_BINARY_DIR}/cfg/udl_dlls.cfg.tmp
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/cfg/udl_dlls.cfg.tmp
         ${CMAKE_CURRENT_BINARY_DIR}/cfg/n0/udl_dlls.cfg
-    COMMAND ln -sfn ${CMAKE_CURRENT_BINARY_DIR}/cfg/udl_dlls.cfg.tmp
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/cfg/udl_dlls.cfg.tmp
         ${CMAKE_CURRENT_BINARY_DIR}/cfg/n1/udl_dlls.cfg
-    COMMAND ln -sfn ${CMAKE_CURRENT_BINARY_DIR}/cfg/udl_dlls.cfg.tmp
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/cfg/udl_dlls.cfg.tmp
         ${CMAKE_CURRENT_BINARY_DIR}/cfg/n2/udl_dlls.cfg
-    COMMAND ln -sfn ${CMAKE_CURRENT_BINARY_DIR}/cfg/clear_log.sh.tmp
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/cfg/clear_log.sh.tmp
         ${CMAKE_CURRENT_BINARY_DIR}/cfg/n0/clear_log.sh
-    COMMAND ln -sfn ${CMAKE_CURRENT_BINARY_DIR}/cfg/clear_log.sh.tmp
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/cfg/clear_log.sh.tmp
         ${CMAKE_CURRENT_BINARY_DIR}/cfg/n1/clear_log.sh
-    COMMAND ln -sfn ${CMAKE_CURRENT_BINARY_DIR}/cfg/clear_log.sh.tmp
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/cfg/clear_log.sh.tmp
         ${CMAKE_CURRENT_BINARY_DIR}/cfg/n2/clear_log.sh
 
     COMMAND chmod 755 ${CMAKE_CURRENT_SOURCE_DIR}/cfg/clear_log.sh.tmp
